@@ -3,6 +3,12 @@
   "id": "modid",
   "version": "${version}",
 
+  "custom": {
+    "cardinal-components": [
+      "modid:bucketlist"
+    ]
+  },
+
   "name": "Example Mod",
   "description": "This is an example description! Tell everyone what your mod is about!",
   "authors": [
@@ -19,9 +25,15 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.ExampleMod"
+      "me.nokko.bucketlist.BucketList"
+    ],
+    "client": [
+      "me.nokko.bucketlist.BucketListClient"
+    ],
+    "cardinal-components": [
+      "me.nokko.bucketlist.BucketListComponents"
     ]
-  },
+},
   "mixins": [
     "modid.mixins.json"
   ],
