@@ -1,26 +1,19 @@
 {
   "schemaVersion": 1,
-  "id": "modid",
+  "id": "bucketlist",
   "version": "${version}",
 
-  "custom": {
-    "cardinal-components": [
-      "modid:bucketlist"
-    ]
-  },
-
-  "name": "Example Mod",
-  "description": "This is an example description! Tell everyone what your mod is about!",
+  "name": "Bucket List",
+  "description": "Track how many blocks you've looked at.",
   "authors": [
-    "Me!"
+    "nokko"
   ],
   "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
+    "sources": "https://github.com/nok-ko/bucketlist"
   },
 
   "license": "CC0-1.0",
-  "icon": "assets/modid/icon.png",
+  "icon": "assets/bucketlist/icon.png",
 
   "environment": "*",
   "entrypoints": {
@@ -29,21 +22,16 @@
     ],
     "client": [
       "me.nokko.bucketlist.BucketListClient"
-    ],
-    "cardinal-components": [
-      "me.nokko.bucketlist.BucketListComponents"
     ]
 },
   "mixins": [
-    "modid.mixins.json"
+    "bucketlist.mixins.json"
   ],
 
   "depends": {
-    "fabricloader": ">=0.7.4",
+    "fabricloader": ">=0.11.3",
     "fabric": "*",
-    "minecraft": "1.16.x"
-  },
-  "suggests": {
-    "another-mod": "*"
+    "minecraft": "1.17.x",
+    "java": ">=16"
   }
 }
