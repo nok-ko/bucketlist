@@ -23,6 +23,9 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.registry.Registry;
 import net.minecraft.util.registry.RegistryKey;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -34,7 +37,7 @@ import static me.nokko.bucketlist.BucketList.LOGGER;
 @Environment(EnvType.CLIENT)
 public class BucketListClient implements ClientModInitializer {
 
-    private static BucketListTracker BLT = new BucketListTracker();
+    private static BucketListTracker BLT;
 
     public static final HashSet<Block> fullList = new HashSet<>(Arrays.asList(Blocks.DIRT, Blocks.STONE, Blocks.OAK_LOG, Blocks.OAK_LEAVES, Blocks.GRASS_BLOCK));
     private static final ArrayList<String> reference_lines = new ArrayList<>(Arrays.asList("Latest block:", String.format("Progress: 0/%d", fullList.size()), ""));
@@ -47,14 +50,16 @@ public class BucketListClient implements ClientModInitializer {
     }
 
 
+
     public static void onJoin(ClientPlayNetworkHandler clientPlayNetworkHandler, PacketSender packetSender, MinecraftClient client) {
         lines = reference_lines;
+        BLT = new BucketListTracker(client);
         sync(client);
     }
 
     private static void sync(MinecraftClient client) {
         assert client.world != null;
-        ClientPlayNetworking.send(new Identifier(MODID, "blist_update"), PacketByteBufs.create());
+//        ClientPlayNetworking.send(new Identifier(MODID, "blist_update"), PacketByteBufs.create());
     }
 
     private static void updateLines(String latestKey) {
@@ -63,6 +68,11 @@ public class BucketListClient implements ClientModInitializer {
         if (BLT.lookedAt.size() == fullList.size()) {
             lines.set(2, "A WINNER IS YOU!!! I'M SO PROUD <3");
         }
+    }
+
+    private static void onDisconnect(ClientPlayNetworkHandler clientPlayNetworkHandler, MinecraftClient minecraftClient) {
+        BLT.toFile();
+        BLT.reset();
     }
 
     public static void render(MatrixStack matrices, float delta) {
@@ -80,7 +90,7 @@ public class BucketListClient implements ClientModInitializer {
                 BLT.lookedAt.add(block);
                 String name = Registry.BLOCK.getId(block).toString();
 
-                LOGGER.debug(String.format("Sending packet to server! %s %n", name));
+                LOGGER.debug(String.format("Saving! %s %n", name));
                 ClientPlayNetworking.send(new Identifier(MODID, "blist_add_entry"), PacketByteBufs.create().writeString(name));
 
                 String key = block.getTranslationKey();
@@ -103,14 +113,30 @@ public class BucketListClient implements ClientModInitializer {
         LOGGER.info("Client init!");
         HudRenderCallback.EVENT.register(BucketListClient::render);
         ClientPlayConnectionEvents.JOIN.register(BucketListClient::onJoin);
-        ClientPlayNetworking.registerGlobalReceiver(new Identifier(MODID, "blist_init"),
-        (MinecraftClient client, ClientPlayNetworkHandler handler, PacketByteBuf buf, PacketSender sender) -> {
-            NbtCompound tag = buf.readNbt();
-            LOGGER.debug(String.format("Client Synchronizing! %s%n", tag != null ? tag.toString() : "<empty tag>"));
-            BLT = BucketListTracker.fromTag(tag != null ? tag : new NbtCompound());
-            lines = reference_lines;
-            markDirty();
-        });
+        ClientPlayConnectionEvents.DISCONNECT.register(BucketListClient::onDisconnect);
+
+
+        // setup data directory
+        Path client_data_path = MinecraftClient.getInstance()
+                .runDirectory
+                .toPath()
+                .resolve(BucketList.MODID);
+
+        if (!Files.exists(client_data_path)) {
+            try {
+                Files.createDirectory(client_data_path);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+//        ClientPlayNetworking.registerGlobalReceiver(new Identifier(MODID, "blist_init"),
+//        (MinecraftClient client, ClientPlayNetworkHandler handler, PacketByteBuf buf, PacketSender sender) -> {
+//            NbtCompound tag = buf.readNbt();
+//            LOGGER.debug(String.format("Client Synchronizing! %s%n", tag != null ? tag.toString() : "<empty tag>"));
+////            BLT = BucketListTracker.fromTag(tag != null ? tag : new NbtCompound());
+//            lines = reference_lines;
+//            markDirty();
+//        });
         HashSet<Block> unlookables = new HashSet<>(Arrays.asList(
                 Blocks.COMMAND_BLOCK, Blocks.CHAIN_COMMAND_BLOCK, Blocks.REPEATING_COMMAND_BLOCK,
                 Blocks.STRUCTURE_BLOCK, Blocks.STRUCTURE_VOID, Blocks.BARRIER, Blocks.JIGSAW,

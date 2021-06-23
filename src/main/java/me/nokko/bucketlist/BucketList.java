@@ -33,53 +33,53 @@ public class BucketList implements ModInitializer {
 
 		LOGGER.info("Bucket List initializing!");
 
-		ServerWorldEvents.LOAD.register((MinecraftServer server, ServerWorld serverWorld) -> {
-			PersistentStateManager manager = server.getOverworld().getPersistentStateManager();
-			BucketListTracker blt = manager.getOrCreate(BucketListTracker::fromTag, BucketListTracker::new, MODID);
-			LOGGER.debug(String.format("Load! Sending list: %s%n", blt.lookedAt.toString()));
-		});
+//		ServerWorldEvents.LOAD.register((MinecraftServer server, ServerWorld serverWorld) -> {
+//			PersistentStateManager manager = server.getOverworld().getPersistentStateManager();
+//			BucketListTracker blt = manager.getOrCreate(BucketListTracker::fromTag, BucketListTracker::new, MODID);
+//			LOGGER.debug(String.format("Load! Sending list: %s%n", blt.lookedAt.toString()));
+//		});
 
-		ServerWorldEvents.UNLOAD.register((MinecraftServer server, ServerWorld world) -> {
-			PersistentStateManager manager = server.getOverworld().getPersistentStateManager();
-			BucketListTracker blt = manager.getOrCreate(BucketListTracker::fromTag, BucketListTracker::new, MODID);
-			LOGGER.debug(String.format("Unload! Saving list: %s%n", blt.lookedAt.toString()));
-			server.getOverworld().getPersistentStateManager().save();
-		});
+//		ServerWorldEvents.UNLOAD.register((MinecraftServer server, ServerWorld world) -> {
+//			PersistentStateManager manager = server.getOverworld().getPersistentStateManager();
+//			BucketListTracker blt = manager.getOrCreate(BucketListTracker::fromTag, BucketListTracker::new, MODID);
+//			LOGGER.debug(String.format("Unload! Saving list: %s%n", blt.lookedAt.toString()));
+//			server.getOverworld().getPersistentStateManager().save();
+//		});
 
-		ServerPlayNetworking.registerGlobalReceiver(new Identifier(MODID, "blist_add_entry"),
-				(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) -> {
-					Scoreboard scoreboard = player.world.getScoreboard();
-					PersistentStateManager manager = server.getOverworld().getPersistentStateManager();
-					BucketListTracker blt = manager.get(BucketListTracker::fromTag, MODID);
+//		ServerPlayNetworking.registerGlobalReceiver(new Identifier(MODID, "blist_add_entry"),
+//				(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) -> {
+//					Scoreboard scoreboard = player.world.getScoreboard();
+//					PersistentStateManager manager = server.getOverworld().getPersistentStateManager();
+//					BucketListTracker blt = manager.get(BucketListTracker::fromTag, MODID);
+//
+//					String name = buf.readString();
+//					if (blt != null) {
+//						blt.addFromString(name);
+//						LOGGER.debug(String.format("Synchronizing! %s -> %s %n", name, blt.lookedAt.toString()));
+//					} else {
+//						LOGGER.debug("Server got blist_add_entry packet but blt was null (??)");
+//					}
+//				});
 
-					String name = buf.readString();
-					if (blt != null) {
-						blt.addFromString(name);
-						LOGGER.debug(String.format("Synchronizing! %s -> %s %n", name, blt.lookedAt.toString()));
-					} else {
-						LOGGER.debug("Server got blist_add_entry packet but blt was null (??)");
-					}
-				});
+//		ServerPlayNetworking.registerGlobalReceiver(new Identifier(MODID, "blist_update"),
+//				(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) -> {
+//					PersistentStateManager manager = server.getOverworld().getPersistentStateManager();
+//					BucketListTracker blt = manager.getOrCreate(BucketListTracker::fromTag, BucketListTracker::new, MODID);
+//
+//					ServerPlayNetworking.send(handler.player, new Identifier(MODID, "blist_init"), PacketByteBufs.create().writeNbt(blt.writeNbt(new NbtCompound())));
+//				});
 
-		ServerPlayNetworking.registerGlobalReceiver(new Identifier(MODID, "blist_update"),
-				(MinecraftServer server, ServerPlayerEntity player, ServerPlayNetworkHandler handler, PacketByteBuf buf, PacketSender responseSender) -> {
-					PersistentStateManager manager = server.getOverworld().getPersistentStateManager();
-					BucketListTracker blt = manager.getOrCreate(BucketListTracker::fromTag, BucketListTracker::new, MODID);
-
-					ServerPlayNetworking.send(handler.player, new Identifier(MODID, "blist_init"), PacketByteBufs.create().writeNbt(blt.writeNbt(new NbtCompound())));
-				});
-
-		ServerPlayConnectionEvents.JOIN.register((ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) -> {
-			PersistentStateManager manager = server.getOverworld().getPersistentStateManager();
-			BucketListTracker blt = manager.getOrCreate(BucketListTracker::fromTag, BucketListTracker::new, MODID);
-
-			NbtCompound tag = blt.writeNbt(new NbtCompound());
-			ServerPlayNetworking.send(handler.player, new Identifier(MODID, "blist_init"),
-					PacketByteBufs.create().writeNbt(blt.writeNbt(new NbtCompound()))
-			);
-			LOGGER.debug(String.format("Join! Sending list: %s%n", tag.toString()));
-
-			});
+//		ServerPlayConnectionEvents.JOIN.register((ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) -> {
+//			PersistentStateManager manager = server.getOverworld().getPersistentStateManager();
+//			BucketListTracker blt = manager.getOrCreate(BucketListTracker::fromTag, BucketListTracker::new, MODID);
+//
+//			NbtCompound tag = blt.writeNbt(new NbtCompound());
+//			ServerPlayNetworking.send(handler.player, new Identifier(MODID, "blist_init"),
+//					PacketByteBufs.create().writeNbt(blt.writeNbt(new NbtCompound()))
+//			);
+//			LOGGER.debug(String.format("Join! Sending list: %s%n", tag.toString()));
+//
+//			});
 
 
 	}
