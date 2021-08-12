@@ -2,11 +2,11 @@
   "required": true,
   "minVersion": "0.8",
   "package": "me.nokko.bucketlist.mixin",
-  "compatibilityLevel": "JAVA_16",
-  "mixins": [
-    "IntegratedServerAccessor"
-  ],
+  "compatibilityLevel": "JAVA_8",
+  "mixins": [],
   "client": [
+    "IntegratedServerAccessor",
+    "ClientConnectionMixin"
   ],
   "injectors": {
     "defaultRequire": 1

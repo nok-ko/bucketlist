@@ -1,13 +1,13 @@
 package me.nokko.bucketlist;
 
 import net.fabricmc.api.ModInitializer;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+//import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
 import net.fabricmc.fabric.api.networking.v1.PacketSender;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 //import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.scoreboard.Scoreboard;
 import net.minecraft.server.MinecraftServer;
@@ -66,16 +66,16 @@ public class BucketList implements ModInitializer {
 //					PersistentStateManager manager = server.getOverworld().getPersistentStateManager();
 //					BucketListTracker blt = manager.getOrCreate(BucketListTracker::fromTag, BucketListTracker::new, MODID);
 //
-//					ServerPlayNetworking.send(handler.player, new Identifier(MODID, "blist_init"), PacketByteBufs.create().writeNbt(blt.writeNbt(new NbtCompound())));
+//					ServerPlayNetworking.send(handler.player, new Identifier(MODID, "blist_init"), PacketByteBufs.create().writeNbt(blt.writeNbt(new CompoundTag())));
 //				});
 
 //		ServerPlayConnectionEvents.JOIN.register((ServerPlayNetworkHandler handler, PacketSender sender, MinecraftServer server) -> {
 //			PersistentStateManager manager = server.getOverworld().getPersistentStateManager();
 //			BucketListTracker blt = manager.getOrCreate(BucketListTracker::fromTag, BucketListTracker::new, MODID);
 //
-//			NbtCompound tag = blt.writeNbt(new NbtCompound());
+//			CompoundTag tag = blt.writeNbt(new CompoundTag());
 //			ServerPlayNetworking.send(handler.player, new Identifier(MODID, "blist_init"),
-//					PacketByteBufs.create().writeNbt(blt.writeNbt(new NbtCompound()))
+//					PacketByteBufs.create().writeNbt(blt.writeNbt(new CompoundTag()))
 //			);
 //			LOGGER.debug(String.format("Join! Sending list: %s%n", tag.toString()));
 //

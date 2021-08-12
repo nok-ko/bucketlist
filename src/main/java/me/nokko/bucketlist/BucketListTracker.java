@@ -1,21 +1,19 @@
 package me.nokko.bucketlist;
 
 import me.nokko.bucketlist.mixin.IntegratedServerAccessor;
-import net.fabricmc.fabric.api.util.NbtType;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.MinecraftClient;
-import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.NbtList;
-import net.minecraft.nbt.NbtString;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.registry.Registry;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.HashSet;
 import java.util.Optional;
 
@@ -28,14 +26,14 @@ public class BucketListTracker {
 
     // Filesystem
     private String save_path;
-    private NbtCompound tag;
+    private CompoundTag tag;
     private boolean dirty;
 
     public BucketListTracker(MinecraftClient client) {
 
         String filename;
         if (client.isInSingleplayer()) {
-            filename = ((IntegratedServerAccessor) client.getServer()).getSession().getLevelSummary().getName();
+            filename = ((IntegratedServerAccessor) client.getServer()).getSession().method_29584().getName();
         } else {
             filename = client.getCurrentServerEntry().name;
         }
@@ -44,23 +42,26 @@ public class BucketListTracker {
                 .runDirectory
                 .toPath()
                 .resolve(BucketList.MODID)
-                .resolve(filename).toAbsolutePath().toString() + ".dat";
+                .resolve(filename).toAbsolutePath() + ".dat";
         try {
-            this.tag = Optional.ofNullable(NbtIo.readCompressed(new File(save_path))).orElse(new NbtCompound());
+            this.tag = Optional.ofNullable(NbtIo.readCompressed(new FileInputStream(save_path))).orElse(new CompoundTag());
         } catch (IOException e) {
             e.printStackTrace();
+        }
+        if (this.tag == null) {
+            this.tag = new CompoundTag();
         }
         this.fromTag(this.tag);
     }
 
-    public NbtCompound writeNbt(NbtCompound nbt) {
+    public CompoundTag writeNbt(CompoundTag nbt) {
         LOGGER.debug("writing to NBT");
-        NbtList NbtList = new NbtList();
+        ListTag ListTag = new ListTag();
         for (Block block : this.lookedAt) {
-            NbtList.add(NbtString.of(Registry.BLOCK.getId(block).toString()));
+            ListTag.add(StringTag.of(Registry.BLOCK.getId(block).toString()));
         }
-        nbt.put("bucketList", NbtList);
-        nbt.put("latest", NbtString.of(Registry.BLOCK.getId(this.latest).toString()));
+        nbt.put("bucketList", ListTag);
+        nbt.put("latest", StringTag.of(Registry.BLOCK.getId(this.latest).toString()));
         LOGGER.debug(String.format("wrote %d values to NBT%n %s%n", this.lookedAt.size(), nbt.toString()));
         return nbt;
     }
@@ -75,38 +76,39 @@ public class BucketListTracker {
     public void reset() {
         this.lookedAt = new HashSet<>();
         this.latest = Blocks.AIR;
-        this.markDirty();
+//        this.markDirty(); // oh no no no
     }
 
-    private void markDirty() {
+    public void markDirty() {
         this.dirty = true;
     }
 
     public void toFile() {
         if (this.dirty) {
-            LOGGER.debug("writing to NBT");
-            NbtList NbtList = new NbtList();
+            LOGGER.info(String.format("writing to NBT at %s", this.save_path));
+            ListTag listTag = new ListTag();
             for (Block block : this.lookedAt) {
-                NbtList.add(NbtString.of(Registry.BLOCK.getId(block).toString()));
+                listTag.add(StringTag.of(Registry.BLOCK.getId(block).toString()));
             }
-            this.tag.put("bucketList", NbtList);
-            this.tag.put("latest", NbtString.of(Registry.BLOCK.getId(this.latest).toString()));
+            this.tag.put("bucketList", listTag);
+            this.tag.put("latest", StringTag.of(Registry.BLOCK.getId(this.latest).toString()));
 
             try {
-                NbtIo.writeCompressed(this.tag, new File(this.save_path));
-                LOGGER.debug(String.format("wrote %d values to NBT%n %s%n", this.lookedAt.size(), this.tag.toString()));
+                NbtIo.writeCompressed(this.tag, new FileOutputStream(this.save_path));
+                LOGGER.info(String.format("wrote %d values to NBT%n %s%n", this.lookedAt.size(), this.tag.toString()));
             } catch (IOException e) {
                 e.printStackTrace();
             }
+            this.dirty = false; // hopefully prevent saving over ourselves?
         }
     }
 
-    private void fromTag(NbtCompound tag) {
-        LOGGER.debug(String.format("reading from NBT %s%n", tag.toString()));
-        NbtList list = tag.getList("bucketList", NbtType.STRING);
+    private void fromTag(CompoundTag tag) {
+        LOGGER.info(String.format("reading from NBT %s%n", tag.toString()));
+        ListTag list = tag.getList("bucketList", 8 /*NbtType.STRING*/);
         String latest = tag.getString("latest");
         HashSet<String> names = new HashSet<>();
-        LOGGER.debug(list.toString());
+        LOGGER.info(list.toString());
 
 
         for(int i = 0; i < list.size(); ++i) {
